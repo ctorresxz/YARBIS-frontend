@@ -1,13 +1,15 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* app/globals.css */
 
-/* Variables base */
+/* Importa TailwindCSS completo */
+@import "tailwindcss";
+
+/* Variables base de color */
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
+/* Tema oscuro automático según preferencia del sistema */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -19,5 +21,5 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  @apply font-sans;
+  font-family: theme('fontFamily.sans');
 }

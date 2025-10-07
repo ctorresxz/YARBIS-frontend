@@ -1,7 +1,9 @@
-import type { Config } from "tailwindcss";
+// tailwind.config.js
 import daisyui from "daisyui";
 
-const config = {
+/** @type {import('tailwindcss').Config} */
+export default {
+  // Rutas donde Tailwind debe escanear clases
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -10,11 +12,10 @@ const config = {
   theme: {
     extend: {},
   },
+  // Activa DaisyUI como plugin
   plugins: [daisyui],
-  // @ts-expect-error: clave extra para DaisyUI que TS no tipa en UserConfig
+  // Temas DaisyUI (elige los que quieras)
   daisyui: {
     themes: ["corporate", "light", "dark"],
   },
-} satisfies Config;
-
-export default config;
+};

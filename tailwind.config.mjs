@@ -1,3 +1,4 @@
+// tailwind.config.mjs
 import daisyui from "daisyui";
 
 /** @type {import('tailwindcss').Config} */
@@ -7,9 +8,7 @@ const config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  theme: {
-    extend: {},
-  },
+  theme: { extend: {} },
   plugins: [daisyui],
   daisyui: { themes: ["corporate", "light", "dark"] },
 };

@@ -69,16 +69,14 @@ export default function MerakiLogin() {
         <div className="lg:flex lg:items-center lg:justify-center">
           <div className="lg:w-1/2 text-center">
             <img
-              className="w-auto h-10 mx-auto mb-4"
-              src="/static/Para fondo negro.png"
-              alt="Logo"
+              className="w-auto h-16 mx-auto mb-4"
+              src="/Estrellas-8.png"
+              alt="Logo Estrellas"
             />
+            <p className="text-gray-500 dark:text-gray-400">Bienvenido</p>
             <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">
-              Login (App Pagos VAC)
+              Login YARBIS Visas Americanas Colombia
             </h1>
-            <p className="mt-2 text-gray-500 dark:text-gray-400">
-              Aplicación para registro de pagos / solo personal autorizado
-            </p>
           </div>
 
           <div className="mt-10 lg:w-1/2 lg:mt-0">

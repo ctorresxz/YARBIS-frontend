@@ -10,7 +10,7 @@ type Estado = {
   ok: boolean;
 };
 
-export default function Merakiadjuntar() {
+export default function Merakiadjuntar(): JSX.Element {
   const router = useRouter();
 
   // ----- Refs originales (se conservan) -----

@@ -1,13 +1,19 @@
-"use client";
+// === 1. Comentario inicial ===
+// Componente de Login principal de la aplicación YARBIS
+// Encargado de autenticar usuarios y redirigir al menú principal.
 
+// === 2. Importaciones ===
+"use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+// === 3. Inicialización de hooks/estado ===
 export default function MerakiLogin() {
   const router = useRouter();
   const [status, setStatus] = useState<{ msg: string; kind: "ok" | "err" | "warn" | "" }>({ msg: "", kind: "" });
   const [loading, setLoading] = useState(false);
 
+  // === 4. Funciones internas ===
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
@@ -35,7 +41,7 @@ export default function MerakiLogin() {
 
       if (res.status === 200) {
         setStatus({ msg: data.message || "Login exitoso", kind: "ok" });
-        router.push("/adjuntar");
+        router.push("/menu");
         return;
       }
 
@@ -63,6 +69,7 @@ export default function MerakiLogin() {
     }
   }
 
+  // === 5. Bloque principal (JSX) ===
   return (
     <section className="bg-white dark:bg-gray-900 min-h-screen flex items-center justify-center">
       <div className="container px-6 py-16 mx-auto lg:py-24">
@@ -75,7 +82,7 @@ export default function MerakiLogin() {
             />
             <p className="text-gray-500 dark:text-gray-400">Bienvenido</p>
             <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">
-              Login YARBIS Visas Americanas Colombia
+              Login YARVIS Visas Americanas Colombia
             </h1>
           </div>
 

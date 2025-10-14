@@ -1,8 +1,20 @@
+
 // components/Merakimenu.tsx
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Merakimenu() {
+  const router = useRouter();
+
+  function handleLogout() {
+    if (typeof window !== "undefined") {
+      localStorage.clear();
+      sessionStorage.clear();
+    }
+    router.push("/login");
+  }
+
   return (
     <div className="flex">
       {/* Sidebar */}
@@ -16,7 +28,7 @@ export default function Merakimenu() {
             {/* Menu principal */}
             <div className="space-y-3">
               <label className="px-3 text-xs text-gray-500 uppercase dark:text-gray-400">
-                Menu principal YARBIS
+                Menu principal YARVIS
               </label>
 
               <Link
@@ -88,15 +100,15 @@ export default function Merakimenu() {
 
             {/* LOGOUT */}
             <div className="space-y-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <Link
-                className="flex items-center px-3 py-2 text-red-600 rounded-lg transition-colors duration-300 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900 hover:text-red-700"
-                href="/logout"
+              <button
+                onClick={handleLogout}
+                className="flex items-center px-3 py-2 text-red-600 rounded-lg transition-colors duration-300 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900 hover:text-red-700 w-full text-left"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H2.25" />
                 </svg>
                 <span className="mx-2 text-sm font-medium">Salir</span>
-              </Link>
+              </button>
             </div>
           </nav>
         </div>
@@ -108,7 +120,7 @@ export default function Merakimenu() {
         <div className="relative min-h-[70vh]">
           <div className="text-center mt-20">
             <h1 className="text-3xl font-semibold text-gray-800 dark:text-white">
-              Bienvenido a YARBIS
+              Bienvenido a YARVIS
             </h1>
             <p className="text-gray-500 mt-2">
               Aplicación creada para gestionar todos los procesos de Visas Americanas Colombia.
@@ -132,3 +144,4 @@ export default function Merakimenu() {
     </div>
   );
 }
+

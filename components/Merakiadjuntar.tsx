@@ -1,7 +1,7 @@
 // components/Merakiadjuntar.tsx
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 import { useRouter } from "next/navigation";
 
 type Estado = {
@@ -10,7 +10,7 @@ type Estado = {
   ok: boolean;
 };
 
-export default function Merakiadjuntar(): JSX.Element {
+export default function Merakiadjuntar(): ReactElement {
   const router = useRouter();
 
   // ----- Refs originales (se conservan) -----
@@ -210,7 +210,7 @@ export default function Merakiadjuntar(): JSX.Element {
     const dz = refDrop.current!;
     dz.addEventListener("paste", (e: ClipboardEvent) => {
       const items = Array.from(e.clipboardData?.items || []);
-      const item = items.find((i) => i.type.startsWith("image/") || i.type === "application/pdf"));
+      const item = items.find((i) => i.type.startsWith("image/") || i.type === "application/pdf");
       const blob = item?.getAsFile();
       handleFile(blob || undefined);
     });
@@ -259,7 +259,7 @@ export default function Merakiadjuntar(): JSX.Element {
     }
 
     const nombre = refNombre.current?.value?.trim() || "";
-    const correo = refCorreo.current?.value?.trim() || "";
+    const correo = refCorreo.current?.value?.trim() || ""; // <-- FIX: sin “the”
     const numero = Number.parseInt(refNumero.current?.value || "0");
     const producto = refProducto.current?.value?.trim() || "";
     const sucursal = refSucursal.current?.value?.trim() || "";
@@ -592,7 +592,7 @@ export default function Merakiadjuntar(): JSX.Element {
                   log("Ir a informe (TODO ruta Next)");
                 }
               }}
-              className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 sm:text-base sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 gap-x-3 hover:bg-gray-100"
+              className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 transition-colors duración-200 sm:text-base sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 gap-x-3 hover:bg-gray-100"
               title="Informe"
             >
               <svg
@@ -663,7 +663,7 @@ export default function Merakiadjuntar(): JSX.Element {
             onClick={onLogout}
             disabled={state.sending}
             title="Cerrar sección"
-            className="bg-white dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800 rounded-lg hover:bg-gray-100 duration-300 transition-colors border px-4 py-2.5"
+            className="bg-white dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800 rounded-lg hover:bg-gray-100 duración-300 transition-colors border px-4 py-2.5"
           >
             <svg
               className="w-5 h-5 sm:h-6 sm:w-6"
@@ -736,7 +736,7 @@ export default function Merakiadjuntar(): JSX.Element {
               xmlns="http://www.w3.org/2000/svg"
             >
               <path d="M20 3.33331C10.8 3.33331 3.33337 10.8 3.33337 20C3.33337 29.2 10.8 36.6666 20 36.6666C29.2 36.6666 36.6667 29.2 36.6667 20C36.6667 10.8 29.2 3.33331 20 3.33331ZM16.6667 28.3333L8.33337 20L10.6834 17.65L16.6667 23.6166L29.3167 10.9666L31.6667 13.3333L16.6667 28.3333Z" />
-            </svg>
+          </svg>
           </div>
           <div className="px-4 py-2">
             <div className="font-semibold text-emerald-600 dark:text-emerald-400">

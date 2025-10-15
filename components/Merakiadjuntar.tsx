@@ -556,16 +556,15 @@ export default function Merakiadjuntar(): ReactElement {
 
             {/* Proceso manual */}
             <button
-              type="button"
-              onClick={() => {
-                if (!state.sending) {
-                  // TODO: router.push('/manualtotal')
-                  log("Ir a proceso manual (TODO ruta Next)");
-                }
-              }}
-              className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 sm:text-base sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 gap-x-3 hover:bg-gray-100"
-              title="Proceso manual"
-            >
+  type="button"
+  onClick={() => {
+    if (!state.sending) {
+      router.push('/manualtotal');
+    }
+  }}
+  className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 sm:text-base sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 gap-x-3 hover:bg-gray-100"
+  title="Proceso manual"
+>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -585,15 +584,15 @@ export default function Merakiadjuntar(): ReactElement {
 
             {/* Informe */}
             <button
-              type="button"
-              onClick={() => {
-                if (!state.sending) {
-                  // TODO: router.push('/rango')
-                  log("Ir a informe (TODO ruta Next)");
-                }
-              }}
-              className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 transition-colors duración-200 sm:text-base sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 gap-x-3 hover:bg-gray-100"
-              title="Informe"
+  type="button"
+  onClick={() => {
+    if (!state.sending) {
+      router.push("/rango");
+      log("Ir a informe (/rango)");
+    }
+  }}
+  className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 sm:text-base sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 gap-x-3 hover:bg-gray-100"
+  title="Informe"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

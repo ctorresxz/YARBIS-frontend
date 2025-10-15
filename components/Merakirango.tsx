@@ -87,7 +87,7 @@ export default function Merakirango(): ReactElement {
       // 1) Ejecutar calendario (como en HTML de backend)
       const today = new Date().toISOString().slice(0, 10);
       taskLog(pre, `▶ Ejecutando calendario ${today}...`);
-      const calRes = await fetch(`/_calendario/calendario?date=${today}&make_pdf=${makePdf}&make_xlsx=${makeXlsx}`, { method: "POST" });
+      const calRes = await fetch(`/api/_calendario/calendario?date=${today}&make_pdf=${makePdf}&make_xlsx=${makeXlsx}`, { method: "POST" }); // <-- proxy /api
       if (!calRes.ok) {
         const err = await calRes.text();
         taskLog(pre, `ERROR calendario: ${calRes.status} ${err}`);
@@ -97,7 +97,7 @@ export default function Merakirango(): ReactElement {
       taskLog(pre, "✅ Calendario OK");
 
       // 2) Ejecutar rango
-      let url = `/_rango/rango?preset=${encodeURIComponent(preset)}&make_pdf=${makePdf ? "true" : "false"}&make_xlsx=${makeXlsx ? "true" : "false"}`;
+      let url = `/api/_rango/rango?preset=${encodeURIComponent(preset)}&make_pdf=${makePdf ? "true" : "false"}&make_xlsx=${makeXlsx ? "true" : "false"}`; // <-- proxy /api
       if (preset === "personalizado") {
         url += `&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
       }
@@ -113,14 +113,14 @@ export default function Merakirango(): ReactElement {
         const range = data?.range;
         if (data?.output_pdf && makePdf) {
           const a = document.createElement('a');
-          a.href = `/${data.output_pdf}`;
+          a.href = `/api/${data.output_pdf}`; // <-- proxy /api para descarga
           let fname = 'informe.pdf';
           if (range?.start && range?.end) fname = range.start === range.end ? `informe_${range.start}.pdf` : `informe_${range.start}_a_${range.end}.pdf`;
           a.download = fname; document.body.appendChild(a); a.click(); a.remove();
         }
         if (data?.output_xlsx && makeXlsx) {
           const a = document.createElement('a');
-          a.href = `/${data.output_xlsx}`;
+          a.href = `/api/${data.output_xlsx}`; // <-- proxy /api para descarga
           let fname = 'consolidado.xlsx';
           if (range?.start && range?.end) fname = range.start === range.end ? `consolidado_${range.start}.xlsx` : `consolidado_${range.start}_a_${range.end}.xlsx`;
           a.download = fname; document.body.appendChild(a); a.click(); a.remove();
@@ -232,11 +232,11 @@ export default function Merakirango(): ReactElement {
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
               <span className="text-green-600">{state.sending ? "Procesando…" : "Generar informe"}</span>
             </button>
-            <button type="button" onClick={onReset} disabled={state.sending} className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 sm:text-base sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 gap-x-3 hover:bg-gray-100" title="Reiniciar">
+            <button type="button" onClick={onReset} disabled={state.sending} className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 transition-colors duración-200 sm:text-base sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 gap-x-3 hover:bg-gray-100" title="Reiniciar">
               <svg className="w-5 h-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.227V5.12M21 12a9 9 0 1 1-3.338-6.958M20.25 5.25l-4.227 4.098"/></svg>
               <span>Reiniciar</span>
             </button>
-            <button type="button" onClick={onAtras} disabled={state.sending} className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 sm:text-base sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 gap-x-3 hover:bg-gray-100" title="Atrás">
+            <button type="button" onClick={onAtras} disabled={state.sending} className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 transition-colors duración-200 sm:text-base sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 gap-x-3 hover:bg-gray-100" title="Atrás">
               <svg className="w-5 h-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
               <span>Atrás</span>
             </button>

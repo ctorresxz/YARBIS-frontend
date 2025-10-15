@@ -331,9 +331,29 @@ export default function Merakimanualtotal(): ReactElement {
 
         {/* Secundarios: cerrar sesión (misma acción que en adjuntar) */}
         <div className="flex items-center gap-3 sm:gap-x-5 mt-4 justify-center">
-          <button type="button" onClick={onLogout} disabled={state.sending} title="Cerrar sesión" className="bg-white dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800 rounded-lg hover:bg-gray-100 duración-300 transition-colors border px-4 py-2.5">
-            <svg className="w-5 h-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25v7.5m6.364-3.864a9 9 0 1 1-3.338-6.958M20.25 5.25l-4.227 4.098"/></svg>
-          </button>
+          <button
+  type="button"
+  onClick={onLogout}
+  disabled={state.sending}
+  title="Cerrar sesión"
+  className="bg-white dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800 rounded-lg hover:bg-gray-100 duration-300 transition-colors border w-10 h-10 p-0 flex items-center justify-center leading-none"
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.5}
+    className="w-6 h-6"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M5.636 5.636a9 9 0 1 0 12.728 0M12 3v9"
+    />
+  </svg>
+</button>
+
         </div>
 
         {state.error && (

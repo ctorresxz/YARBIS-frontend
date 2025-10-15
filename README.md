@@ -298,3 +298,140 @@ npm start       # servir build local
 - **Component-first**: cada página = 2 archivos (componente en `components/` + wrapper en `app/<ruta>/page.tsx`).  
 - **Tailwind v4 + DaisyUI** como base de estilos.  
 - **TypeScript** estricto y alias `@/*`.
+
+---
+
+## /adjuntar – Registro de desprendibles de pago (Merakiadjuntar)
+
+**Archivo:** `components/Merakiadjuntar.tsx`  
+**Wrapper de página:** `app/adjuntar/page.tsx`
+
+### Qué hace
+
+- **Formulario “Registro desprendibles de pago”** con campos: **Nombre**, **Correo**, **Número de personas**, **Producto**, **Sucursal**.
+- **Persistencia local** en `localStorage` (se repueblan los campos al recargar).
+- **Validaciones**:
+  - Archivo obligatorio (PNG/JPG/JPEG/GIF/PDF, máx **15 MB**).
+  - Nombre / Producto / Sucursal obligatorios.
+  - Número de personas `>= 1`.
+- **Dropzone** (click, _drag & drop_ y **paste** de imagen/PDF).
+- **Toast de éxito** “Archivo adjuntado” (emerge cuando el archivo pasa validación).
+- **Acciones**:
+  - **Procesar** → `POST /api/_read/lectura` con `FormData(file, meta)`  
+    - Si la validación es automática (`validacion: "automatica"` o `status: "ok"`), registra en log y lanza **Datos** (`/api/_datos/datos?source=auto`) con `X-Correlation-Id`.
+    - Si hay `verification_failed` con `file`, redirige al **flujo manual** (pendiente de ruta).
+    - Manejo de errores: traza de texto y cuadro de error accesible (`role="alert"`).
+  - **Proceso manual** (log + TODO `router.push('/manualtotal')`).
+  - **Informe** (log + TODO `router.push('/rango')`).
+  - **Reiniciar**: borra caché local y limpia el estado.
+  - **Atrás**: `router.push('/menu')`.
+  - **Cerrar sesión**: limpia `localStorage` + `sessionStorage` y `router.push('/login')`.
+- **Panel de “Verificación de tareas”** con tarjeta (estilo Meraki) que contiene:
+  - **Log incremental** (prepende mensajes con hora).
+  - **Tasks** con entradas por proceso (`<h3>Proceso HH:MM:SS</h3><pre>…</pre>`).
+
+> **Nota de diseño:** se centraron las secciones **Dropzone**, **grupo de botones** y **panel de verificación**, conservando la responsividad original.
+
+### Endpoints (vía proxy `/api/...`)
+
+- `GET /api/_adj/product-options` – llena el `<select>` de **Producto** (con _fallback_ local si falla).
+- `POST /api/_read/lectura` – procesa el archivo (multiparte).
+- `POST /api/_datos/datos?source=auto` – “Datos: JSON unificado” (se invoca tras éxito de lectura).
+
+### Tipo de retorno y _case-sensitive_ (importante para Vercel/TS)
+
+- Se tipó explícitamente la firma del componente para evitar el error _“cannot be used as a JSX component”_:
+
+```tsx
+// components/Merakiadjuntar.tsx
+export default function Merakiadjuntar(): JSX.Element {
+  // ...
+}
+```
+
+- En **`app/adjuntar/page.tsx`** importa respetando el **casing exacto del archivo** (Linux/Vercel es _case-sensitive_):
+
+```tsx
+import Merakiadjuntar from "@/components/Merakiadjuntar";
+
+export default function Page() {
+  return (
+    <div className="p-4">
+      <Merakiadjuntar />
+    </div>
+  );
+}
+```
+
+### UX: toasts y tarjeta informativa
+
+- **Toast éxito** (archivo adjuntado): se muestra ~2.2 s y contiene el **nombre del archivo**.
+- **Tarjeta “Verificación de tareas” (azul)**: integra el log **existente** y no cambia tu _wiring_, solo el _wrapper_ visual.
+
+### Reglas de negocio clave
+
+- **Validación de archivo**:
+  - Mime permitido: `image/png`, `image/jpeg`, `image/jpg`, `image/gif`, `application/pdf`.
+  - Tamaño: `<= 15 * 1024 * 1024` bytes.
+- **Validación de formulario** (antes de enviar):
+  - `archivoListo && nombre && producto && sucursal && numero >= 1`.
+
+### Errores y _retry_ controlado
+
+- Cuando `POST /api/_datos/datos?source=auto` devuelve **404** justo después de la lectura, se hace **un reintento** tras 600 ms (esperando a que el backend termine su pipeline).
+- Errores de red y de API se **registran en el log** y en un **banner accesible** (`role="alert"`).
+
+### Accesibilidad
+
+- `aria-live="polite"` en mensajes y log para lectores de pantalla.
+- Botones deshabilitan acciones mientras `sending=true`.
+- Dropzone navegable con teclado (`Enter`/`Space` dispara `<input type="file">`).
+
+### Estructura de UI (resumen de secciones)
+
+1. **Brand** (logo centrado).
+2. **Card Datos** – título: **“Registro desprendibles de pago”**.
+3. **Card Dropzone** – “Adjuntar o pegar imagen de pago”.
+4. **Card Acciones** – grupo de 3 (Procesar / Proceso manual / Informe) + grupo “sin color” (Reiniciar / Atrás / Cerrar sesión).
+5. **Card Verificación de tareas** – tarjeta azul con log y _tasks_.
+
+### Troubleshooting específico de /adjuntar
+
+- **TS2786 / “cannot be used as a JSX component”**  
+  Asegúrate de **declarar** `(): JSX.Element` y de **importar con el mismo casing** que el archivo.
+
+- **“Cannot find namespace 'JSX'”**  
+  Verifica que `tsconfig.json` tenga `"jsx": "preserve"` y `lib` incluya `"dom"`.
+
+- **Vercel (Linux) vs Windows (local)**  
+  - Cualquier diferencia de mayúsculas/minúsculas en nombres de archivo **rompe el build** en Vercel.  
+  - Los avisos **CRLF/LF** son benignos; Git normaliza.
+
+- **Adjuntar por _paste_ no reacciona**  
+  Debes enfocar la **dropzone** (label) y pegar; solo acepta `image/*` o `application/pdf`.
+
+### Comandos Git sugeridos (cuando toques /adjuntar)
+
+```bash
+# trabajar en rama feature
+git checkout -b feat/adjuntar-ui
+
+# añadir cambios
+git add components/Merakiadjuntar.tsx app/adjuntar/page.tsx public/
+
+# commit con convención
+git commit -m "feat(adjuntar): UI de registro, dropzone, toasts y verificación de tareas"
+
+# (si renombraste por casing)
+git mv components/merakiadjuntar.tsx components/Merakiadjuntar.tsx
+git commit -m "chore(adjuntar): enforce exact casing for Merakiadjuntar"
+
+# subir
+git push -u origin feat/adjuntar-ui
+```
+
+### Roadmap corto de /adjuntar
+
+- Conectar **Proceso manual** e **Informe** con sus rutas reales (`router.push`).
+- Añadir **guard de sesión** (middleware o verificación en el componente).
+- Confirmación visual al terminar **Datos** (cuando `triggerDatosAfterLectura` finaliza).

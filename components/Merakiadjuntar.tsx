@@ -201,7 +201,7 @@ export default function Merakiadjuntar(): ReactElement {
       // Mostrar confirmación visual de “Archivo adjuntado”
       setShowAttachOK(true);
       setTimeout(() => setShowAttachOK(false), 2200);
-      log(`Archivo seleccionado: ${f.name}`);
+      log(`Archivo ✅: ${f.name}`);
     },
     [validateFile, log]
   );
@@ -237,7 +237,7 @@ export default function Merakiadjuntar(): ReactElement {
         headers: { "X-Correlation-Id": cid },
       });
       if (res.ok) {
-        log("🧩 Datos: JSON unificado.");
+        log("🧩 Datos: ok.");
         return;
       }
       if (res.status === 404 && attempt === 1) {
@@ -271,7 +271,7 @@ export default function Merakiadjuntar(): ReactElement {
 
     setState({ sending: true, error: null, ok: false });
     const taskPre = createTaskLog("Proceso " + new Date().toLocaleTimeString()) as HTMLPreElement;
-    taskLog(taskPre, "⏳ Enviado a lectura...");
+    taskLog(taskPre, "⏳lectura...");
 
     const fd = new FormData();
     fd.append("file", archivoListo);
@@ -297,8 +297,8 @@ export default function Merakiadjuntar(): ReactElement {
         } catch {}
 
         if (data && (data.validacion === "automatica" || data.status === "ok")) {
-          log("✅ Aprobado automáticamente.");
-          taskLog(taskPre, "✅ Aprobado automáticamente.");
+          log("✅ Aprobado.");
+          taskLog(taskPre, "✅ Aprobado.");
           const cid = genCID();
           await triggerDatosAfterLectura(cid);
           setState({ sending: false, error: null, ok: true });

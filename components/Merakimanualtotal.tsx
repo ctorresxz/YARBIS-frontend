@@ -122,12 +122,9 @@ export default function Merakimanualtotal(): ReactElement {
 
   const triggerDatosAfterManual = useCallback(async (cid: string, attempt = 1) => {
     try {
-      const res = await fetch("/_datos/datos?source=manual", {
-        method: "POST",
-        headers: { "X-Correlation-Id": cid },
-      });
+      const res = await fetch("/api/_datos/datos?source=manual", { method:"POST", headers:{ "X-Correlation-Id": cid } });
       if (res.ok) {
-        log("🧩 Datos: generado JSON unificado.");
+        log("🧩 Datos: generado JSON.");
         return;
       }
       if (res.status === 404 && attempt === 1) {
@@ -181,11 +178,7 @@ export default function Merakimanualtotal(): ReactElement {
     });
 
     try {
-      const res = await fetch("/manualtotal", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: params,
-      });
+      const res = await fetch("/api/manualtotal", { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded" }, body: params });
 
       const json = await res.json().catch(() => ({} as any));
 
@@ -329,7 +322,7 @@ export default function Merakimanualtotal(): ReactElement {
               <svg className="w-5 h-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.227V5.12M21 12a9 9 0 1 1-3.338-6.958M20.25 5.25l-4.227 4.098"/></svg>
               <span>Reiniciar</span>
             </button>
-            <button type="button" onClick={onAtras} disabled={state.sending} className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 sm:text-base sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 gap-x-3 hover:bg-gray-100" title="Atrás">
+            <button type="button" onClick={onAtras} disabled={state.sending} className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 transition-colors duración-200 sm:text-base sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 gap-x-3 hover:bg-gray-100" title="Atrás">
               <svg className="w-5 h-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
               <span>Atrás</span>
             </button>
@@ -338,8 +331,8 @@ export default function Merakimanualtotal(): ReactElement {
 
         {/* Secundarios: cerrar sesión (misma acción que en adjuntar) */}
         <div className="flex items-center gap-3 sm:gap-x-5 mt-4 justify-center">
-          <button type="button" onClick={onLogout} disabled={state.sending} title="Cerrar sesión" className="bg-white dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800 rounded-lg hover:bg-gray-100 duration-300 transition-colors border px-4 py-2.5">
-            <svg className="w-5 h-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25v7.5m6.364-3.864a9 9 0 1 1-12.728 0"/></svg>
+          <button type="button" onClick={onLogout} disabled={state.sending} title="Cerrar sesión" className="bg-white dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800 rounded-lg hover:bg-gray-100 duración-300 transition-colors border px-4 py-2.5">
+            <svg className="w-5 h-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25v7.5m6.364-3.864a9 9 0 1 1-3.338-6.958M20.25 5.25l-4.227 4.098"/></svg>
           </button>
         </div>
 

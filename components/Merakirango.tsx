@@ -87,7 +87,7 @@ export default function Merakirango(): ReactElement {
       // 1) Ejecutar calendario (como en HTML de backend)
       const today = new Date().toISOString().slice(0, 10);
       taskLog(pre, `▶ Ejecutando calendario ${today}...`);
-      const calRes = await fetch(`/api/_calendario/calendario?date=${today}&make_pdf=${makePdf}&make_xlsx=${makeXlsx}`, { method: "POST" }); // <-- proxy /api
+      const calRes = await fetch(`/api/_calendario/calendario?date=${today}&make_pdf=${makePdf}&make_xlsx=${makeXlsx}`, { method: "POST", credentials: "include" });
       if (!calRes.ok) {
         const err = await calRes.text();
         taskLog(pre, `ERROR calendario: ${calRes.status} ${err}`);
@@ -97,13 +97,13 @@ export default function Merakirango(): ReactElement {
       taskLog(pre, "✅ Calendario OK");
 
       // 2) Ejecutar rango
-      let url = `/api/_rango/rango?preset=${encodeURIComponent(preset)}&make_pdf=${makePdf ? "true" : "false"}&make_xlsx=${makeXlsx ? "true" : "false"}`; // <-- proxy /api
+      let url = `/api/_rango/rango?preset=${encodeURIComponent(preset)}&make_pdf=${makePdf ? "true" : "false"}&make_xlsx=${makeXlsx ? "true" : "false"}`;
       if (preset === "personalizado") {
         url += `&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
       }
 
       taskLog(pre, `▶ POST ${url}`);
-      const res = await fetch(url, { method: "POST" });
+      const res = await fetch(url, { method: "POST", credentials: "include" });
       const txt = await res.text();
       let data: any; try { data = JSON.parse(txt); } catch { data = { raw: txt }; }
 
@@ -113,14 +113,14 @@ export default function Merakirango(): ReactElement {
         const range = data?.range;
         if (data?.output_pdf && makePdf) {
           const a = document.createElement('a');
-          a.href = `/api/${data.output_pdf}`; // <-- proxy /api para descarga
+          a.href = `/api/_download/${encodeURIComponent(data.output_pdf)}`;
           let fname = 'informe.pdf';
           if (range?.start && range?.end) fname = range.start === range.end ? `informe_${range.start}.pdf` : `informe_${range.start}_a_${range.end}.pdf`;
           a.download = fname; document.body.appendChild(a); a.click(); a.remove();
         }
         if (data?.output_xlsx && makeXlsx) {
           const a = document.createElement('a');
-          a.href = `/api/${data.output_xlsx}`; // <-- proxy /api para descarga
+          a.href = `/api/_download/${encodeURIComponent(data.output_xlsx)}`;
           let fname = 'consolidado.xlsx';
           if (range?.start && range?.end) fname = range.start === range.end ? `consolidado_${range.start}.xlsx` : `consolidado_${range.start}_a_${range.end}.xlsx`;
           a.download = fname; document.body.appendChild(a); a.click(); a.remove();
@@ -249,7 +249,7 @@ export default function Merakirango(): ReactElement {
         )}
               {/* Botón Cerrar sesión (estilo neutro) */}
         <div className="flex items-center justify-center mt-4">
-          <button type="button" onClick={onLogout} disabled={state.sending} title="Cerrar sesión" className="bg-white dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800 rounded-lg hover:bg-gray-100 duration-300 transition-colors border px-4 py-2.5 flex items-center gap-2">
+          <button type="button" onClick={onLogout} disabled={state.sending} title="Cerrar sesión" className="bg-white dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800 rounded-lg hover:bg-gray-100 duración-300 transition-colors border px-4 py-2.5 flex items-center gap-2">
             <svg className="w-5 h-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="1.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25v7.5m6.364-3.864a9 9 0 1 1-12.728 0" />
             </svg>

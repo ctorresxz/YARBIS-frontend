@@ -178,7 +178,12 @@ export default function Merakimanualtotal(): ReactElement {
     });
 
     try {
-      const res = await fetch("/api/_manualtotal/manualtotal", { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded" }, body: params });
+      const res = await fetch("/api/_manualtotal/manualtotal", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: params,
+        credentials: "include", // <<<<<<<<<<<<<<<<<<<<<< CAMBIO ÚNICO
+      });
 
       const json = await res.json().catch(() => ({} as any));
 

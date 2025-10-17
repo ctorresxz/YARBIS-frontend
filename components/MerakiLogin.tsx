@@ -33,6 +33,7 @@ export default function MerakiLogin() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
+        credentials: "include",              // ← añadido
       });
 
       const ct = res.headers.get("content-type") || "";

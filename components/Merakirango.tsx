@@ -111,16 +111,23 @@ export default function Merakirango(): ReactElement {
         taskLog(pre, `✅ HTTP ${res.status}${data?.status ? " · "+data.status : ""}`);
         // Descargar salidas si procede
         const range = data?.range;
+
+        // --- NORMALIZACIÓN DEL SUBPATH PARA /_download ---
+        // Quita "logs/" o "app/logs/" al inicio. No codifica las barras.
+        const norm = (p: string) => (p || "").replace(/^\/?(?:app\/)?logs\//, "");
+
         if (data?.output_pdf && makePdf) {
           const a = document.createElement('a');
-          a.href = `/api/_download/${encodeURIComponent(data.output_pdf)}`;
+          const subpathPdf = norm(data.output_pdf);
+          a.href = `/api/_download/${subpathPdf}`;
           let fname = 'informe.pdf';
           if (range?.start && range?.end) fname = range.start === range.end ? `informe_${range.start}.pdf` : `informe_${range.start}_a_${range.end}.pdf`;
           a.download = fname; document.body.appendChild(a); a.click(); a.remove();
         }
         if (data?.output_xlsx && makeXlsx) {
           const a = document.createElement('a');
-          a.href = `/api/_download/${encodeURIComponent(data.output_xlsx)}`;
+          const subpathX = norm(data.output_xlsx);
+          a.href = `/api/_download/${subpathX}`;
           let fname = 'consolidado.xlsx';
           if (range?.start && range?.end) fname = range.start === range.end ? `consolidado_${range.start}.xlsx` : `consolidado_${range.start}_a_${range.end}.xlsx`;
           a.download = fname; document.body.appendChild(a); a.click(); a.remove();
@@ -202,28 +209,28 @@ export default function Merakirango(): ReactElement {
           </div>
 
           {/* PDF / XLSX (paralelo) */}
-<div className="w-full flex flex-col sm:flex-row items-center justify-center sm:space-x-10 space-y-6 sm:space-y-0">
-  <div className="flex flex-col items-center">
-    <img src="/pdf.png" alt="PDF" className="w-10 h-10 object-contain" />
-    <span className="mt-2 text-sm text-gray-700 dark:text-gray-200">Generar PDF</span>
-    <label htmlFor="makePdf" className="mt-3 inline-flex items-center cursor-pointer select-none">
-      <input id="makePdf" ref={refMakePdf} type="checkbox" defaultChecked className="sr-only peer" />
-      <span className="w-11 h-6 bg-gray-300 dark:bg-gray-600 rounded-full relative transition-colors peer-checked:bg-emerald-500">
-        <span className="absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5" />
-      </span>
-    </label>
-  </div>
-  <div className="flex flex-col items-center">
-    <img src="/excel.png" alt="Excel" className="w-10 h-10 object-contain" />
-    <span className="mt-2 text-sm text-gray-700 dark:text-gray-200">Generar EXCEL</span>
-    <label htmlFor="makeXlsx" className="mt-3 inline-flex items-center cursor-pointer select-none">
-      <input id="makeXlsx" ref={refMakeXlsx} type="checkbox" className="sr-only peer" />
-      <span className="w-11 h-6 bg-gray-300 dark:bg-gray-600 rounded-full relative transition-colors peer-checked:bg-emerald-500">
-        <span className="absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5" />
-      </span>
-    </label>
-  </div>
-</div></div>
+          <div className="w-full flex flex-col sm:flex-row items-center justify-center sm:space-x-10 space-y-6 sm:space-y-0">
+            <div className="flex flex-col items-center">
+              <img src="/pdf.png" alt="PDF" className="w-10 h-10 object-contain" />
+              <span className="mt-2 text-sm text-gray-700 dark:text-gray-200">Generar PDF</span>
+              <label htmlFor="makePdf" className="mt-3 inline-flex items-center cursor-pointer select-none">
+                <input id="makePdf" ref={refMakePdf} type="checkbox" defaultChecked className="sr-only peer" />
+                <span className="w-11 h-6 bg-gray-300 dark:bg-gray-600 rounded-full relative transition-colors peer-checked:bg-emerald-500">
+                  <span className="absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5" />
+                </span>
+              </label>
+            </div>
+            <div className="flex flex-col items-center">
+              <img src="/excel.png" alt="Excel" className="w-10 h-10 object-contain" />
+              <span className="mt-2 text-sm text-gray-700 dark:text-gray-200">Generar EXCEL</span>
+              <label htmlFor="makeXlsx" className="mt-3 inline-flex items-center cursor-pointer select-none">
+                <input id="makeXlsx" ref={refMakeXlsx} type="checkbox" className="sr-only peer" />
+                <span className="w-11 h-6 bg-gray-300 dark:bg-gray-600 rounded-full relative transition-colors peer-checked:bg-emerald-500">
+                  <span className="absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5" />
+                </span>
+              </label>
+            </div>
+          </div></div>
 
         {/* Botonera principal (idéntica a Merakiadjuntar) */}
         <div className="w-full flex justify-center mt-6">
@@ -247,7 +254,7 @@ export default function Merakirango(): ReactElement {
         {state.error && (
           <div className="btn" role="alert" aria-live="polite" style={{ marginTop: 10, borderColor: "#3a2b0e", background: "#261d0a" }}>{state.error}</div>
         )}
-              {/* Botón Cerrar sesión (estilo neutro) */}
+        {/* Botón Cerrar sesión (estilo neutro) */}
         <div className="flex items-center justify-center mt-4">
           <button type="button" onClick={onLogout} disabled={state.sending} title="Cerrar sesión" className="bg-white dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800 rounded-lg hover:bg-gray-100 duración-300 transition-colors border px-4 py-2.5 flex items-center gap-2">
             <svg className="w-5 h-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="1.5">

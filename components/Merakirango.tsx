@@ -19,23 +19,60 @@ export default function Merakirango(): ReactElement {
   const [pin, setPin] = useState<string>("");
   const [pinErr, setPinErr] = useState<string>("");
 
+  // --- NUEVO: TTL 30 min en sessionStorage (sin cookies/localStorage) ---
+  const TTL_MS = 30 * 60 * 1000; // 30 minutos
+
+  const setGate = () => {
+    try {
+      sessionStorage.setItem("rango_ok", "1");
+      sessionStorage.setItem("rango_exp", String(Date.now() + TTL_MS));
+    } catch {}
+  };
+
+  const clearGate = () => {
+    try {
+      sessionStorage.removeItem("rango_ok");
+      sessionStorage.removeItem("rango_exp");
+    } catch {}
+  };
+
   useEffect(() => {
     try {
-      const ok = localStorage.getItem("rango_ok") === "1";
-      setAuthed(ok);
+      const ok = sessionStorage.getItem("rango_ok") === "1";
+      const exp = Number(sessionStorage.getItem("rango_exp") || 0);
+      if (ok && exp > Date.now()) {
+        setAuthed(true);
+      } else {
+        clearGate();
+        setAuthed(false);
+      }
     } catch {}
   }, []);
 
   const onEnter = useCallback(() => {
     const expected = process.env.NEXT_PUBLIC_RANGO_PIN || "";
     if (pin && expected && pin === expected) {
-      try { localStorage.setItem("rango_ok", "1"); } catch {}
+      setGate();
       setAuthed(true);
       setPinErr("");
     } else {
       setPinErr("Clave incorrecta");
     }
   }, [pin]);
+
+  // --- NUEVO: expiración automática a los 30 min ---
+  useEffect(() => {
+    if (!authed) return;
+    const exp = Number(sessionStorage.getItem("rango_exp") || 0);
+    const ms = Math.max(0, exp - Date.now());
+    const id = window.setTimeout(() => {
+      clearGate();
+      setAuthed(false);
+      setPin("");
+      setPinErr("Sesión expirada. Vuelve a ingresar la clave.");
+    }, ms);
+    return () => clearTimeout(id);
+  }, [authed]);
 
   // ====== REFS según rango.html ======
   const refPreset = useRef<HTMLSelectElement>(null);
@@ -188,7 +225,7 @@ export default function Merakirango(): ReactElement {
 
   // ====== Cerrar sesión ======
   const onLogout = useCallback(() => {
-    try { localStorage.clear(); sessionStorage.clear(); } catch {}
+    try { clearGate(); sessionStorage.clear(); } catch {}
     router.push("/login");
   }, [router]);
 

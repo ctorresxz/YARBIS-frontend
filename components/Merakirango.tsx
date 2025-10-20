@@ -14,6 +14,29 @@ type Estado = {
 export default function Merakirango(): ReactElement {
   const router = useRouter();
 
+  // ====== Gate por PIN (acceso restringido) ======
+  const [authed, setAuthed] = useState<boolean>(false);
+  const [pin, setPin] = useState<string>("");
+  const [pinErr, setPinErr] = useState<string>("");
+
+  useEffect(() => {
+    try {
+      const ok = localStorage.getItem("rango_ok") === "1";
+      setAuthed(ok);
+    } catch {}
+  }, []);
+
+  const onEnter = useCallback(() => {
+    const expected = process.env.NEXT_PUBLIC_RANGO_PIN || "";
+    if (pin && expected && pin === expected) {
+      try { localStorage.setItem("rango_ok", "1"); } catch {}
+      setAuthed(true);
+      setPinErr("");
+    } else {
+      setPinErr("Clave incorrecta");
+    }
+  }, [pin]);
+
   // ====== REFS según rango.html ======
   const refPreset = useRef<HTMLSelectElement>(null);
   const refStart = useRef<HTMLInputElement>(null);
@@ -169,7 +192,41 @@ export default function Merakirango(): ReactElement {
     router.push("/login");
   }, [router]);
 
-  // ====== UI ======
+  // ====== Gate UI (si no autorizado) ======
+  if (!authed) {
+    return (
+      <div className="wrap">
+        <section className="card max-w-md mx-auto bg-white dark:bg-gray-800 rounded-md shadow-md p-6" style={{ marginTop: 14 }}>
+          <h2 className="text-xl font-semibold text-gray-700 dark:text-white text-center">Acceso restringido</h2>
+          <div className="mt-4">
+            <label className="text-gray-700 dark:text-gray-200" htmlFor="pin">Clave</label>
+            <input
+              id="pin"
+              type="password"
+              value={pin}
+              onChange={(e) => setPin(e.target.value)}
+              className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 dark:focus:border-blue-300 focus:outline-none focus:ring"
+              placeholder="Ingrese clave de acceso"
+            />
+            <button
+              type="button"
+              onClick={onEnter}
+              className="mt-4 w-full inline-flex justify-center items-center px-4 py-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              Entrar
+            </button>
+            {pinErr && (
+              <div className="btn" role="alert" aria-live="polite" style={{ marginTop: 10, borderColor: "#3a2b0e", background: "#261d0a" }}>
+                {pinErr}
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  // ====== UI (original) ======
   return (
     <div className="wrap">
       {/* Logo / encabezado */}
@@ -208,7 +265,7 @@ export default function Merakirango(): ReactElement {
             </div>
           </div>
 
-          {/* PDF / XLSX (paralelo) */}
+          {/* PDF / XLSX */}
           <div className="w-full flex flex-col sm:flex-row items-center justify-center sm:space-x-10 space-y-6 sm:space-y-0">
             <div className="flex flex-col items-center">
               <img src="/pdf.png" alt="PDF" className="w-10 h-10 object-contain" />
@@ -232,11 +289,11 @@ export default function Merakirango(): ReactElement {
             </div>
           </div></div>
 
-        {/* Botonera principal (idéntica a Merakiadjuntar) */}
+        {/* Botonera principal */}
         <div className="w-full flex justify-center mt-6">
           <div className="flex overflow-hidden bg-white border divide-x rounded-lg rtl:flex-row-reverse dark:bg-gray-900 dark:border-gray-700 dark:divide-gray-700 w-fit">
             <button type="button" onClick={onRun} disabled={state.sending} className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 sm:text-base sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 gap-x-3 hover:bg-gray-100" title="Generar informe">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0-3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
               <span className="text-green-600">{state.sending ? "Procesando…" : "Generar informe"}</span>
             </button>
             <button type="button" onClick={onReset} disabled={state.sending} className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 transition-colors duración-200 sm:text-base sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 gap-x-3 hover:bg-gray-100" title="Reiniciar">
@@ -254,7 +311,7 @@ export default function Merakirango(): ReactElement {
         {state.error && (
           <div className="btn" role="alert" aria-live="polite" style={{ marginTop: 10, borderColor: "#3a2b0e", background: "#261d0a" }}>{state.error}</div>
         )}
-        {/* Botón Cerrar sesión (estilo neutro) */}
+        {/* Botón Cerrar sesión */}
         <div className="flex items-center justify-center mt-4">
           <button type="button" onClick={onLogout} disabled={state.sending} title="Cerrar sesión" className="bg-white dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800 rounded-lg hover:bg-gray-100 duración-300 transition-colors border px-4 py-2.5 flex items-center gap-2">
             <svg className="w-5 h-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="1.5">

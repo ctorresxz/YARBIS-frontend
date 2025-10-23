@@ -24,6 +24,10 @@ export default function Merakiadjuntar(): ReactElement {
   const refLog = useRef<HTMLDivElement>(null);
   const refTasks = useRef<HTMLDivElement>(null);
 
+  // ----- NUEVOS REFS (añadidos, sin borrar nada) -----
+  const refTelefono = useRef<HTMLInputElement>(null);
+  const refObservaciones = useRef<HTMLTextAreaElement>(null);
+
   const [archivoListo, setArchivoListo] = useState<File | null>(null);
   const [state, setState] = useState<Estado>({ sending: false, error: null, ok: false });
 
@@ -117,6 +121,22 @@ export default function Merakiadjuntar(): ReactElement {
       const saved = localStorage.getItem("sucursal") || "sede pereira";
       sucursal.value = saved;
       sucursal.addEventListener("change", () => localStorage.setItem("sucursal", sucursal.value));
+    }
+
+    // ----- NUEVA PERSISTENCIA (teléfono / observaciones) -----
+    const telefono = refTelefono.current;
+    if (telefono) {
+      telefono.value = localStorage.getItem("telefono") || "";
+      telefono.addEventListener("input", () =>
+        localStorage.setItem("telefono", telefono.value.trim())
+      );
+    }
+    const observ = refObservaciones.current;
+    if (observ) {
+      observ.value = localStorage.getItem("observaciones") || "";
+      observ.addEventListener("input", () =>
+        localStorage.setItem("observaciones", observ.value.trim())
+      );
     }
   }, []);
 
@@ -264,6 +284,10 @@ export default function Merakiadjuntar(): ReactElement {
     const producto = refProducto.current?.value?.trim() || "";
     const sucursal = refSucursal.current?.value?.trim() || "";
 
+    // ----- NUEVO: tomar teléfono y observaciones -----
+    const telefono = refTelefono.current?.value?.trim() || "";
+    const observaciones = refObservaciones.current?.value?.trim() || "";
+
     if (!nombre || !producto || !sucursal || !Number.isInteger(numero) || numero < 1) {
       setState((s) => ({ ...s, error: "Completa los campos obligatorios." }));
       return;
@@ -285,6 +309,30 @@ export default function Merakiadjuntar(): ReactElement {
         sucursal,
       })
     );
+
+    // ----- NUEVO: enriquecer el "meta" SIN borrar líneas existentes -----
+    try {
+      const current = fd.get("meta");
+      const baseObj =
+        typeof current === "string" ? JSON.parse(current) : JSON.parse(String(current));
+      baseObj.telefono = telefono || null;
+      baseObj.observaciones = observaciones || null;
+      fd.set("meta", JSON.stringify(baseObj));
+    } catch {
+      // Fallback por si parse falla
+      fd.set(
+        "meta",
+        JSON.stringify({
+          producto,
+          numero_personas: numero,
+          nombre,
+          correo: correo || null,
+          sucursal,
+          telefono: telefono || null,
+          observaciones: observaciones || null,
+        })
+      );
+    }
 
     try {
       const res = await fetch("/api/_read/lectura", { method: "POST", body: fd });
@@ -349,11 +397,17 @@ export default function Merakiadjuntar(): ReactElement {
     ["nombre", "correo", "numero_personas", "producto", "sucursal"].forEach((k) =>
       localStorage.removeItem(k)
     );
+    // NUEVO: limpiar también teléfono y observaciones
+    localStorage.removeItem("telefono");
+    localStorage.removeItem("observaciones");
+
     if (refNombre.current) refNombre.current.value = "";
     if (refCorreo.current) refCorreo.current.value = "";
     if (refNumero.current) refNumero.current.value = "";
     if (refProducto.current) refProducto.current.value = "";
     if (refSucursal.current) refSucursal.current.value = "sede pereira";
+    if (refTelefono.current) refTelefono.current.value = "";
+    if (refObservaciones.current) refObservaciones.current.value = "";
     if (refFile.current) refFile.current.value = "";
     setArchivoListo(null);
     setState({ sending: false, error: null, ok: false });
@@ -364,6 +418,10 @@ export default function Merakiadjuntar(): ReactElement {
     ["nombre", "correo", "numero_personas", "producto", "sucursal"].forEach((k) =>
       localStorage.removeItem(k)
     );
+    // NUEVO: limpiar también teléfono y observaciones
+    localStorage.removeItem("telefono");
+    localStorage.removeItem("observaciones");
+
     sessionStorage.clear();
     router.push("/login");
   }, [router]);
@@ -419,6 +477,21 @@ export default function Merakiadjuntar(): ReactElement {
               className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
             />
           </div>
+
+          {/* ===== NUEVO: Teléfono ===== */}
+          <div>
+            <label className="text-gray-700 dark:text-gray-200" htmlFor="telefono">
+              Teléfono
+            </label>
+            <input
+              id="telefono"
+              ref={refTelefono}
+              type="tel"
+              placeholder="+57 300 000 0000"
+              className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
+            />
+          </div>
+
           <div>
             <label className="text-gray-700 dark:text-gray-200" htmlFor="numero_personas">
               Número de personas
@@ -461,6 +534,20 @@ export default function Merakiadjuntar(): ReactElement {
               <option value="sede pereira">Sede Pereira</option>
               <option value="sede bogota">Sede Bogotá</option>
             </select>
+          </div>
+
+          {/* ===== NUEVO: Observaciones (textarea) ===== */}
+          <div className="sm:col-span-2">
+            <label className="text-gray-700 dark:text-gray-200" htmlFor="observaciones">
+              Observaciones
+            </label>
+            <textarea
+              id="observaciones"
+              ref={refObservaciones}
+              rows={3}
+              placeholder="Notas adicionales u observaciones…"
+              className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
+            />
           </div>
         </div>
 
@@ -591,7 +678,7 @@ export default function Merakiadjuntar(): ReactElement {
       log("Ir a informe (/rango)");
     }
   }}
-  className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 sm:text-base sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 gap-x-3 hover:bg-gray-100"
+  className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 transition-colors duración-200 sm:text-base sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 gap-x-3 hover:bg-gray-100"
   title="Informe"
             >
               <svg
@@ -620,7 +707,7 @@ export default function Merakiadjuntar(): ReactElement {
             onClick={onReset}
             disabled={state.sending}
             title="Reiniciar"
-            className="bg-white dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800 rounded-lg hover:bg-gray-100 duration-300 transition-colors border px-4 py-2.5"
+            className="bg-white dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800 rounded-lg hover:bg-gray-100 duración-300 transition-colors border px-4 py-2.5"
           >
             <svg
               className="w-5 h-5 sm:h-6 sm:w-6"
@@ -643,7 +730,7 @@ export default function Merakiadjuntar(): ReactElement {
             onClick={() => router.push("/menu")}
             disabled={state.sending}
             title="Atrás"
-            className="bg-white dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800 rounded-lg hover:bg-gray-100 duration-300 transition-colors border px-4 py-2.5"
+            className="bg-white dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800 rounded-lg hover:bg-gray-100 duración-300 transition-colors border px-4 py-2.5"
           >
             <svg
               className="w-5 h-5 sm:h-6 sm:w-6"
@@ -735,7 +822,7 @@ export default function Merakiadjuntar(): ReactElement {
               xmlns="http://www.w3.org/2000/svg"
             >
               <path d="M20 3.33331C10.8 3.33331 3.33337 10.8 3.33337 20C3.33337 29.2 10.8 36.6666 20 36.6666C29.2 36.6666 36.6667 29.2 36.6667 20C36.6667 10.8 29.2 3.33331 20 3.33331ZM16.6667 28.3333L8.33337 20L10.6834 17.65L16.6667 23.6166L29.3167 10.9666L31.6667 13.3333L16.6667 28.3333Z" />
-          </svg>
+            </svg>
           </div>
           <div className="px-4 py-2">
             <div className="font-semibold text-emerald-600 dark:text-emerald-400">

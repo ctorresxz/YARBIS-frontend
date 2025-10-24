@@ -64,8 +64,9 @@ export default function Merakiadjuntar(): ReactElement {
     const numero = Number.parseInt(refNumero.current?.value || "");
     const producto = refProducto.current?.value?.trim();
     const sucursal = refSucursal.current?.value?.trim();
+    const telefono = refTelefono.current?.value?.trim() || "";
     return Boolean(
-      archivoListo && nombre && producto && sucursal && Number.isInteger(numero) && numero >= 1
+      archivoListo && (nombre || telefono) && producto && Number.isInteger(numero) && numero >= 1
     );
   }, [archivoListo]);
 
@@ -288,7 +289,7 @@ export default function Merakiadjuntar(): ReactElement {
     const telefono = refTelefono.current?.value?.trim() || "";
     const observaciones = refObservaciones.current?.value?.trim() || "";
 
-    if (!nombre || !producto || !sucursal || !Number.isInteger(numero) || numero < 1) {
+    if (!( (nombre || telefono) && producto && Number.isInteger(numero) && numero >= 1 )) {
       setState((s) => ({ ...s, error: "Completa los campos obligatorios." }));
       return;
     }

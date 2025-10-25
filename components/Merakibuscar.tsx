@@ -1,135 +1,217 @@
-// components/Merakimenu.tsx
+// components/Merakibuscar.tsx
 "use client";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 
-export default function Merakimenu() {
-  const router = useRouter();
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
-  function handleLogout() {
-    if (typeof window !== "undefined") {
-      localStorage.clear();
-      sessionStorage.clear();
+type Partes = {
+  nombre: string;
+  fecha: string;
+  hora: string;
+  banco: string;
+  valor: string;
+  telefono: string;
+};
+
+type Item = {
+  filename: string;
+  path_rel: string;
+  size_bytes: number;
+  mtime: string;
+  ext: string;
+  mime: string;
+  parts: Partes;
+  preview_url: string;
+};
+
+type Resp = {
+  ok: boolean;
+  count: number;
+  limit: number;
+  offset: number;
+  results: Item[];
+  correlation_id: string;
+};
+
+const toQuery = (params: Record<string, string | number | boolean | undefined>) => {
+  const usp = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== "") usp.set(k, String(v));
+  });
+  return `?${usp.toString()}`;
+};
+
+export default function Merakibuscar() {
+  const [q, setQ] = useState("");
+  const [results, setResults] = useState<Item[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  // debounce simple
+  const timer = useRef<number | null>(null);
+  const trigger = (fn: () => void, ms = 350) => {
+    if (timer.current) window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(fn, ms);
+  };
+
+  const doSearch = async (query: string) => {
+    setLoading(true);
+    setErr(null);
+    try {
+      const url = "/api/buscar" + toQuery({ q: query.trim(), limit: 50, sort: "mtime_desc" });
+      const res = await fetch(url, { cache: "no-store" });
+      const ct = res.headers.get("content-type") || "";
+      const data: Resp = ct.includes("application/json") ? await res.json() : await res.text();
+      if (!ct.includes("application/json")) throw new Error(String(data));
+      if (!data.ok) throw new Error("Respuesta no OK");
+      setResults(data.results || []);
+      setTotal(data.count || 0);
+    } catch (e: any) {
+      setErr(e?.message || "Error");
+      setResults([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
     }
-    router.push("/login");
-  }
+  };
+
+  // búsqueda inicial (sin filtro) para listar lo más reciente
+  useEffect(() => {
+    doSearch("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // normalizador visual para badges
+  const fmt = useMemo(
+    () => ({
+      size: (n: number) =>
+        n > 1024 * 1024
+          ? `${(n / 1024 / 1024).toFixed(2)} MB`
+          : n > 1024
+          ? `${(n / 1024).toFixed(0)} KB`
+          : `${n} B`,
+      date: (s: string) => new Date(s).toLocaleString(),
+    }),
+    []
+  );
 
   return (
-    <div className="flex">
-      {/* Sidebar */}
-      <aside className="flex flex-col w-64 h-screen px-5 py-8 overflow-y-auto bg-white border-r rtl:border-r-0 rtl:border-l dark:bg-gray-900 dark:border-gray-700">
-        <Link href="#">
-          <img className="w-auto h-10 sm:h-12" src="/Para fondo blanco.png" alt="Logo" />
-        </Link>
+    <div className="max-w-5xl mx-auto px-5 py-6">
+      {/* ====== Barra de búsqueda (plantilla Meraki adaptada) ====== */}
+      <section className="relative w-full max-w-md px-5 py-4 mx-auto rounded-md">
+        <div className="relative">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+            <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
 
-        <div className="flex flex-col justify-between flex-1 mt-6">
-          <nav className="-mx-3 space-y-6">
-            {/* Menu principal */}
-            <div className="space-y-3">
-              <label className="px-3 text-xs text-gray-500 uppercase dark:text-gray-400">
-                Menu principal YARVIS
-              </label>
-
-              {/* Registro de pagos (antes: Pagos) */}
-              <Link
-                className="flex items-center px-3 py-2 text-gray-600 rounded-lg transition-colors duration-300 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 hover:text-gray-700"
-                href="/adjuntar"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
-                </svg>
-                <span className="mx-2 text-sm font-medium">Registro de pagos</span>
-              </Link>
-
-              {/* Proceso manual de pagos (ícono reemplazado + orden intermedio) */}
-              <Link
-                className="flex items-center px-3 py-2 text-gray-600 rounded-lg transition-colors duration-300 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 hover:text-gray-700"
-                href="/manualtotal"
-              >
-                {/* SVG que enviaste, adaptado a React (strokeWidth/className) */}
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                </svg>
-                <span className="mx-2 text-sm font-medium">Proceso manual de pagos</span>
-              </Link>
-
-              {/* Informe de pagos */}
-              <Link
-                className="flex items-center px-3 py-2 text-gray-600 rounded-lg transition-colors duration-300 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 hover:text-gray-700"
-                href="/rango"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
-                </svg>
-                <span className="mx-2 text-sm font-medium">Informe de pagos</span>
-              </Link>
-            </div>
-
-            {/* Sección CONTENT: eliminada a tu solicitud */}
-
-            {/* CUSTOMIZATION */}
-            <div className="space-y-3">
-              <label className="px-3 text-xs text-gray-500 uppercase dark:text-gray-400">CUSTOMIZATION</label>
-
-              <Link className="flex items-center px-3 py-2 text-gray-600 rounded-lg transition-colors duration-300 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 hover:text-gray-700" href="/themes">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008z" />
-                </svg>
-                <span className="mx-2 text-sm font-medium">Por asignar</span>
-              </Link>
-
-              <Link className="flex items-center px-3 py-2 text-gray-600 rounded-lg transition-colors duration-300 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 hover:text-gray-700" href="/settings">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span className="mx-2 text-sm font-medium">Por asignar</span>
-              </Link>
-            </div>
-
-            {/* LOGOUT */}
-            <div className="space-y-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <button
-                onClick={handleLogout}
-                className="flex items-center px-3 py-2 text-red-600 rounded-lg transition-colors duration-300 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900 hover:text-red-700 w-full text-left"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H2.25" />
-                </svg>
-                <span className="mx-2 text-sm font-medium">Salir</span>
-              </button>
-            </div>
-          </nav>
-        </div>
-      </aside>
-
-      {/* Main content (bienvenida) */}
-      <main className="flex-1 p-8">
-        {/* Contenedor relativo para el contenido */}
-        <div className="relative min-h-[70vh]">
-          <div className="text-center mt-20">
-            <h1 className="text-3xl font-semibold text-gray-800 dark:text-white">
-              Bienvenido a YARVIS
-            </h1>
-            <p className="text-gray-500 mt-2">
-              Aplicación creada para gestionar todos los procesos de Visas Americanas Colombia.
-            </p>
-            <p className="text-gray-500 mt-2">
-              Selecciona una opción del menú lateral para comenzar.
-            </p>
-          </div>
-        </div>
-
-        {/* PNG anclado abajo y centrado en el panel derecho.
-            Ancho = 40% del panel derecho, pero con tope: altura máx = 50vh */}
-        <div className="pointer-events-none select-none fixed bottom-2 -translate-x-1/2 flex justify-center w-[calc((100vw-16rem)*0.4)] left-[calc(16rem+((100vw-16rem)/2))]">
-          <img
-            src="/estatualibertad.png"
-            alt="Estatua de la Libertad"
-            className="w-full h-auto object-contain max-h-[50vh]"
+          <input
+            type="text"
+            className="w-full py-3 pl-10 pr-4 text-gray-700 bg-white border rounded-md dark:bg-gray-900 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-40"
+            placeholder="Busca por nombre, fecha, hora, banco, valor, teléfono…"
+            value={q}
+            onChange={(e) => {
+              const v = e.target.value;
+              setQ(v);
+              trigger(() => doSearch(v));
+            }}
           />
         </div>
-      </main>
+
+        {/* resumen estado */}
+        <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+          {loading ? "Buscando…" : `Coincidencias: ${total}`}
+          {err ? <span className="ml-2 text-red-500">({err})</span> : null}
+        </div>
+      </section>
+
+      {/* ====== Lista de resultados ====== */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {results.map((r) => {
+          const isImage = r.mime.startsWith("image/");
+          const isPdf = r.mime === "application/pdf";
+          return (
+            <div
+              key={r.path_rel}
+              className="bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-md overflow-hidden shadow-sm"
+            >
+              {/* preview */}
+              <div className="aspect-video bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                {isImage ? (
+                  // imagen directa
+                  <img
+                    src={`/api${r.preview_url}`}
+                    alt={r.filename}
+                    className="max-h-56 object-contain"
+                    loading="lazy"
+                  />
+                ) : isPdf ? (
+                  // icono PDF + link
+                  <a
+                    href={`/api${r.preview_url}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm underline"
+                    title="Abrir PDF"
+                  >
+                    Ver PDF
+                  </a>
+                ) : (
+                  <span className="text-xs opacity-70">{r.ext.toUpperCase()}</span>
+                )}
+              </div>
+
+              {/* cuerpo */}
+              <div className="p-3">
+                <div className="font-medium text-gray-800 dark:text-gray-100 truncate" title={r.filename}>
+                  {r.filename}
+                </div>
+
+                {/* chips de las 6 partes */}
+                <div className="mt-2 flex flex-wrap gap-1 text-[11px]">
+                  <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800">N: {r.parts.nombre || "—"}</span>
+                  <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800">F: {r.parts.fecha || "—"}</span>
+                  <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800">H: {r.parts.hora || "—"}</span>
+                  <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800">B: {r.parts.banco || "—"}</span>
+                  <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800">V: {r.parts.valor || "—"}</span>
+                  <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800">T: {r.parts.telefono || "—"}</span>
+                </div>
+
+                {/* meta + abrir */}
+                <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                  <span>{fmt.size(r.size_bytes)}</span>
+                  <span>{fmt.date(r.mtime)}</span>
+                </div>
+
+                <div className="mt-2">
+                  <a
+                    href={`/api${r.preview_url}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    Abrir en nueva pestaña
+                  </a>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* vacío */}
+      {!loading && results.length === 0 && (
+        <div className="text-center text-sm mt-8 text-gray-500 dark:text-gray-400">
+          No hay coincidencias.
+        </div>
+      )}
     </div>
   );
 }

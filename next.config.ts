@@ -1,21 +1,23 @@
 // next.config.ts
 import type { NextConfig } from "next";
 
-const BACKEND = (process.env.BACKEND_URL ?? "").replace(/\/+$/, ""); // sin slash final
+const trim = (s?: string) => (s ?? "").replace(/\/+$/, "");
+const BACKEND = trim(process.env.BACKEND_URL);
+const BACKEND_DEV = trim(process.env.BACKEND_URL_DEV);
+const DEV_FALLBACK = "http://127.0.0.1:8000"; // sólo si no hay vars
 
 const nextConfig: NextConfig = {
   async rewrites() {
-    if (!BACKEND) {
-      console.warn("⚠️ BACKEND_URL no definida. Sin rewrites /api → backend.");
+    const base =
+      BACKEND ||
+      BACKEND_DEV ||
+      (process.env.NODE_ENV === "development" ? DEV_FALLBACK : "");
+
+    if (!base) {
+      console.warn("⚠️ Sin BACKEND_URL ni fallback. No se crean rewrites /api → backend.");
       return [];
     }
-    return [
-      // Genérica: todo lo que empiece por /api/** va al backend
-      { source: "/api/:path*", destination: `${BACKEND}/:path*` },
-
-      // (Opcional) mapeos específicos si tu backend usa rutas distintas:
-      // { source: "/api/login", destination: `${BACKEND}/_auth/login` },
-    ];
+    return [{ source: "/api/:path*", destination: `${base}/:path*` }];
   },
 };
 

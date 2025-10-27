@@ -58,7 +58,7 @@ export default function Merakibuscar() {
     setLoading(true);
     setErr(null);
     try {
-      const url = "/api/buscar" + toQuery({ q: query.trim(), limit: 50, sort: "mtime_desc" });
+      const url = "/api/buscar/" + toQuery({ q: query.trim(), limit: 50, sort: "mtime_desc" });
       const res = await fetch(url, { cache: "no-store" });
       const ct = res.headers.get("content-type") || "";
       const data: Resp = ct.includes("application/json") ? await res.json() : await res.text();

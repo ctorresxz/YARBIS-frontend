@@ -261,7 +261,7 @@ export default function Buscar() {
             const p = r.parts || {};
             const href = resolveFileHref(r);
             const title = p.nombre || r.filename.replace(/\.[^/.]+$/, '');
-            const meta = [p.fecha, p.hora, p.banco, p.valor].filter(Boolean).join(' • ') || r.mtime;
+            const meta = [p.fecha, p.hora, p.banco, p.valor, p.telefono].filter(Boolean).join(' • ') || r.mtime;
             return (
               <a key={r.filename} href={href} target="_blank" rel="noreferrer" className="ritem">
                 <div className="rtitle">{title}</div>

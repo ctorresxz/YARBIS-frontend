@@ -1,10 +1,9 @@
-// next.config.ts
 import type { NextConfig } from "next";
 
 const trim = (s?: string) => (s ?? "").replace(/\/+$/, "");
 const BACKEND = trim(process.env.BACKEND_URL);
 const BACKEND_DEV = trim(process.env.BACKEND_URL_DEV);
-const DEV_FALLBACK = "http://127.0.0.1:8000"; // sólo si no hay vars
+const DEV_FALLBACK = "http://127.0.0.1:8000";
 
 const nextConfig: NextConfig = {
   async rewrites() {

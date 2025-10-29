@@ -63,6 +63,17 @@ export default function Merakimenu() {
                 </svg>
                 <span className="mx-2 text-sm font-medium">Informe de pagos</span>
               </Link>
+
+              {/* Comprobante de Pagos (NUEVO) */}
+              <Link
+                className="flex items-center px-3 py-2 text-gray-600 rounded-lg transition-colors duration-300 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 hover:text-gray-700"
+                href="/buscar"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+                <span className="mx-2 text-sm font-medium">Comprobante de Pagos</span>
+              </Link>
             </div>
 
             {/* Sección CONTENT: eliminada a tu solicitud */}
